@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.settings.name }}-web
+  labels:
+    app.kubernetes.io/name: {{ .Values.settings.name }}-web
+    app.kubernetes.io/part-of: {{ .Values.settings.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "chart" . }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+  selector:
+    app.kubernetes.io/name: {{ .Values.settings.name }}-web
+    app.kubernetes.io/instance: {{ .Release.Name }}

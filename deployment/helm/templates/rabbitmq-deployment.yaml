@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.settings.name }}-rabbitmq
+  labels:
+    app.kubernetes.io/name: {{ .Values.settings.name }}-rabbitmq
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.settings.name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "chart" . }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.settings.name }}-rabbitmq
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.settings.name }}-rabbitmq
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/part-of: {{ .Values.settings.name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        helm.sh/chart: {{ include "chart" . }}
+    spec:
+      containers:
+        - name: {{ .Values.settings.name }}-rabbitmq
+          image: rabbitmq:3.7
+          imagePullPolicy: {{ .Values.settings.pullPolicy }}
+          ports:
+            - containerPort: 80
+
+          resources:
+            requests:
+              memory: {{ .Values.rabbitMq.memory }}
+              cpu: {{ .Values.rabbitMq.cpu }}
+            limits:
+              memory: {{ .Values.rabbitMq.limits.memory }}
+              cpu: {{ .Values.rabbitMq.limits.cpu }}
+
+#          readinessProbe:
+#            tcpSocket:
+#              port: 5672
+#            initialDelaySeconds: 5
+#            periodSeconds: 10
+#
+#          livenessProbe:
+#            tcpSocket:
+#              port: 5672
+#            initialDelaySeconds: 15
+#            periodSeconds: 20
+
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: rabbitmq-default-user
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: rabbitmq-default-password
+
+
+  {{- if .Values.nodeSelector }}
+nodeSelector:
+  {{ toYaml .Values.nodeSelector | indent 8 }}
+  {{- end }}
